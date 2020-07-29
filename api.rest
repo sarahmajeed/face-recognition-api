@@ -6,17 +6,43 @@ POST http://localhost:5000/signin
 Content-Type: application/json
 
 {
-  "email": "john@gmail.com",
-  "password": "cook"
+  "email": "John@gmail.com",
+  "password": "cookies"
 }
 
 ###
 
-POST http://localhost:5000/register
+GET http://localhost:5000/profile/124
+
+###
+POST http://localhost:5000/signin
 Content-Type: application/json
 
 {
-  "name": "Sarah",
   "email": "sarah@gmail.com",
-  "password":"software"
+  "password":"software",
 }
+
+###
+
+POST http://localhost:5000/signup
+Content-Type: application/json
+
+{
+  "name": "Sar",
+  "email": "sarahhhhhhhh@gmail.com",
+  "password":"soft"
+}
+###
+
+PUT http://localhost:5000/image
+Content-Type: application/json
+
+{
+ "id":"123"
+}
+
+###
+
+GET http://localhost:5000/profile/12
+

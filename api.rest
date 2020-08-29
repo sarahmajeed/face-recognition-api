@@ -29,9 +29,9 @@ POST http://localhost:5000/signup
 Content-Type: application/json
 
 {
-  "name": "Sar",
-  "email": "sarahhhhhhhh@gmail.com",
-  "password":"soft"
+  "name": "sally",
+  "email": "sally2@gmail.com",
+  "password":"cookies"
 }
 ###
 
@@ -39,10 +39,10 @@ PUT http://localhost:5000/image
 Content-Type: application/json
 
 {
- "id":"123"
+ "id":"8"
 }
 
 ###
 
-GET http://localhost:5000/profile/12
+GET http://localhost:5000/profile/123
 

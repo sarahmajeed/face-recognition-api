@@ -57,37 +57,57 @@ app.get('/', (req, res) => {
 })
 
 app.post('/signin', (req, res) => {
-  // Load hash from your password DB.
-  // bcrypt.compare('software', '$2b$10$tEUoRi8//vPORBwVluPryuen1na55qmlTQpTFTJyGOaLtIHBQUlTu', function (err, result) {
-  //   console.log('first guess', result);
-  // });
-  // bcrypt.compare('hello', '$2b$10$tEUoRi8//vPORBwVluPryuen1na55qmlTQpTFTJyGOaLtIHBQUlTu', function (err, result) {
-  //   console.log('second guess', result);
-  // });
-  console.log(req.body);
-  if (req.body.email === database.users[0].email && req.body.password === database.users[0].password) {
-    res.json('Success');
-  }
-  else {
-    res.status(400).json('Fail')
-  }
+  const { email, password } = req.body;
 
+  db('login').where({
+    email: email
+  })
+    .select('email', 'hash')
+    .then(data => {
+      const isValid = data[0].compareSync(password, data[0].hash);
+      if (isValid) {
+        return db.select('*').from('users')
+          .where({
+            email: email
+          })
+          .then(user => {
+            res.json(user[0])
+          })
+          .catch(err => res.status(400).json('Unable to get user'))
+
+      } else {
+        res.status(400).json('wrong credentials')
+      }
+    }
+    )
+    .catch(err => res.status(400).json('wrong credentials'))
 })
 
 app.post('/signup', (req, res) => {
-  const { name, email } = req.body
-  // bcrypt.hash(password, saltRounds).then(function (hash) {
-  //   console.log(hash);
-  // });
-  db('users')
-    .returning('*')
-    .insert({
+  const { name, email, password } = req.body
+  const hash = bcrypt.hashSync(password, saltRounds);
+  db.transaction(trx => {
+    trx.insert({
+      hash: hash,
       email: email,
-      name: name,
-      joined: new Date()
     })
-    .then(user => res.json(user[0]))
-    .catch(err => console.log(err.message))
+      .into('login')
+      .returning('email')
+      .then(loginEmail => {
+        return trx('users')
+          .returning('*')
+          .insert({
+            email: loginEmail[0],
+            name: name,
+            joined: new Date()
+          })
+          .then(user => res.json(user[0]))
+          .catch(err => console.log(err.message))
+      })
+      .then(trx.commit)
+      .catch(trx.rollback)
+  })
+
 })
 
 app.get('/profile/:id', (req, res) => {
@@ -109,17 +129,15 @@ app.get('/profile/:id', (req, res) => {
 
 app.put('/image', (req, res) => {
   const { id } = req.body;
-  let found = false;
-  database.users.forEach(user => {
-    if (id === `${user.id}`) {
-      found = true;
-      user.entries++;
-      return res.json(user.entries);
-    }
-  })
-  if (found === false) {
-    res.status(400).json('not found')
-  }
+  db('users')
+    .where('id', '=', id)
+    .increment('entries', 1)
+    .returning('entries')
+    .then(entries => {
+      res.json(entries[0])
+    })
+    .catch(err => res.status(400).json('unable to get entries'))
+
 })
 
 app.listen(5000, () => console.log('Listening to port 5000'))
